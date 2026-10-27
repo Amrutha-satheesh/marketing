@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Agency - Financial Tracker (Base: INR ₹)</title>
+  <!-- Styled Excel Export Library (ExcelJS) -->
+  <script src="exceljs.min.js"></script>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --primary-dark: #172554;
+      --accent: #0ea5e9;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+      --danger-bg: #fee2e2;
+      --danger-text: #991b1b;
+      --warning-bg: #fef3c7;
+      --warning-text: #92400e;
+      --radius: 10px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #0369a1);
+      color: white;
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 13.5px;
+      color: #cbd5e1;
+    }
+
+    .header-badge-base {
+      display: inline-block;
+      background: #10b981;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .currency-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .currency-selector-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 7px 14px;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .currency-selector-box label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f8fafc;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .currency-selector-box select {
+      background: white;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .rate-pill {
+      font-size: 12px;
+      background: rgba(15, 23, 42, 0.35);
+      color: #e0f2fe;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: monospace;
+    }
+
+    .rate-pill button {
+      background: #38bdf8;
+      border: none;
+      color: #0c4a6e;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* KPI Summary Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary-light);
+    }
+
+    .kpi-card.profit::before {
+      background: #10b981;
+    }
+
+    .kpi-card.cost::before {
+      background: #f59e0b;
+    }
+
+    .kpi-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Changeable Overhead Section */
+    .cost-config-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .cost-config-info {
+      max-width: 600px;
+    }
+
+    .cost-config-info h3 {
+      font-size: 14.5px;
+      color: #9a3412;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cost-config-info p {
+      font-size: 12.5px;
+      color: #78350f;
+      line-height: 1.45;
+    }
+
+    .cost-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-group label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #9a3412;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-currency-prefix {
+      position: absolute;
+      left: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #78350f;
+      pointer-events: none;
+    }
+
+    .input-group input {
+      padding: 7px 10px 7px 28px;
+      border: 1px solid #fcd34d;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 700;
+      background: white;
+      width: 135px;
+      outline: none;
+      text-align: right;
+    }
+
+    .input-group input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+    }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .actions-bar .left, .actions-bar .right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .badge-info {
+      font-size: 12px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .badge-currency-alert {
+      font-size: 12px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* Sheet Table Styling */
+    .sheet-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    thead th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+      padding: 12px 12px;
+      white-space: nowrap;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+    }
+
+    thead th:last-child {
+      border-right: none;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    tbody tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    tbody td {
+      padding: 9px 12px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* Inline editable cell */
+    .cell-input {
+      width: 100%;
+      padding: 5px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      color: inherit;
+    }
+
+    .cell-input:focus {
+      border-color: var(--primary-light);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .cell-input.number {
+      text-align: right;
+      width: 120px;
+    }
+
+    .calc-cell {
+      font-weight: 700;
+      color: #1e293b;
+      text-align: right;
+    }
+
+    .profit-pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .profit-pill.positive {
+      background-color: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .profit-pill.negative {
+      background-color: var(--danger-bg);
+      color: var(--danger-text);
+    }
+
+    /* Table Footer Summary */
+    tfoot tr {
+      background-color: #e2e8f0;
+      font-weight: 700;
+      border-top: 2px solid #94a3b8;
+    }
+
+    tfoot td {
+      padding: 12px 12px;
+      white-space: nowrap;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      font-size: 14px;
+    }
+
+    .btn-icon:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* Modal for Adding Candidate */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px 28px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    .modal-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+
+    .modal-footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Formula Explanation Banner */
+    .formula-guide {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 18px 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .formula-guide h4 {
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      font-size: 12.5px;
+    }
+
+    .formula-card {
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary-light);
+    }
+
+    .formula-card strong {
+      color: #1e293b;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .formula-card code {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #0369a1;
+      font-size: 11.5px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div>
+        <h1>Marketing Agency Financial Tracker <span class="header-badge-base">Base: INR (₹)</span></h1>
+        <!-- <p>4 Active Employees | Future Candidates Scalability | Live Multi-Currency Conversion</p> -->
+      </div>
+      <div class="currency-controls">
+        <div class="rate-pill" id="rateDisplay">
+          <span>Rates: 1 USD = ₹94.94 | 1 AED = ₹25.85</span>
+          <button onclick="openRateModal()">Edit Rates</button>
+        </div>
+
+        <div class="currency-selector-box">
+          <label for="currencySelect">Currency:</label>
+          <select id="currencySelect" onchange="onCurrencyChange()">
+            <option value="INR" selected>₹ INR (Base)</option>
+            <option value="USD">$ USD (US Dollar)</option>
+            <option value="AED">AED (UAE Dirham)</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-title">Team Size</span>
+        <div class="kpi-value" id="kpiTeamSize">4</div>
+        <span class="kpi-sub" id="kpiTeamSub">4 Current Staff (Scalable)</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-title">Total Daily Payroll</span>
+        <div class="kpi-value" id="kpiTotalSalary">₹16,800.00</div>
+        <span class="kpi-sub" id="kpiTotalSalarySub">Daily team compensation</span>
+      </div>
+
+      <div class="kpi-card cost">
+        <span class="kpi-title">Extra Changeable Costs</span>
+        <div class="kpi-value" id="kpiTotalCost">₹45,000.00</div>
+        <span class="kpi-sub">Rent, software, utilities</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-title">Total Project Revenue</span>
+        <div class="kpi-value" id="kpiTotalRevenue">₹1,92,000.00</div>
+        <span class="kpi-sub">Sum of client billing</span>
+      </div>
+
+      <div class="kpi-card profit">
+        <span class="kpi-title">Total Project Profit (Margin)</span>
+        <div class="kpi-value" id="kpiTotalMargin" style="color: #166534;">+₹1,14,312.50</div>
+        <span class="kpi-sub" id="kpiMarginPct">59.5% Profit Margin</span>
+      </div>
+    </div>
+
+    <!-- Changeable Overhead & Rent Adjustment Banner -->
+    <div class="cost-config-box">
+      <div class="cost-config-info">
+        <h3>🏢 Changeable Company Overheads (Rent & Extra Operating Costs)</h3>
+        <p>Update monthly office rent and overhead expenses. Values convert automatically when toggling between <strong>INR</strong>, <strong>USD</strong>, and <strong>AED</strong>. Distribute evenly across staff with 1 click.</p>
+      </div>
+      <div class="cost-inputs">
+        <div class="input-group">
+          <label>Office Rent</label>
+          <div class="input-wrapper">
+            <span class="input-currency-prefix" id="prefixRent">₹</span>
+            <input type="number" id="rentInput" value="25000" step="500" onchange="onOverheadInputChange()">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Software/Tools</label>
+          <div class="input-wrapper">
+            <span class="input-currency-prefix" id="prefixSoftware">₹</span>
+            <input type="number" id="softwareInput" value="12000" step="500" onchange="onOverheadInputChange()">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Misc/Utilities</label>
+          <div class="input-wrapper">
+            <span class="input-currency-prefix" id="prefixMisc">₹</span>
+            <input type="number" id="miscInput" value="8000" step="250" onchange="onOverheadInputChange()">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addOverheadToCurrentCost()" title="Add overhead share on top of each employee's existing cost">
+          ➕ Add to Current Cost
+        </button>
+        <button class="btn btn-outline" onclick="setOverheadEqually()" title="Set each employee's cost to the exact equal share">
+          🔄 Set Equal Share
+        </button>
+      </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+      <div class="left">
+        <button class="btn btn-primary" onclick="openAddModal()">
+          ➕ Add Candidate / Future Hire
+        </button>
+        <button class="btn btn-outline" onclick="resetToInitial()">
+          🔄 Reset Default 4 Employees
+        </button>
+      </div>
+      <div class="right">
+        <span class="badge-currency-alert" id="activeCurrencyNotice">
+          Active Currency: <strong>INR (₹) - Base</strong>
+        </span>
+        <span class="badge-info">💡 Edit any number directly inside table</span>
+        <button class="btn btn-success" onclick="exportToExcel()">
+          📥 Export to Excel (.xlsx)
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Sheet Table -->
+    <div class="sheet-card">
+      <div class="table-container">
+        <table id="sheetTable">
+          <thead>
+            <tr>
+              <th style="width: 35px; text-align: center;">#</th>
+              <th>Name</th>
+              <th style="text-align: right;" id="thSalary">Salary (₹)</th>
+              <th style="text-align: right;" id="thCost">Cost (Rent/Extras)</th>
+              <th style="text-align: right;">Daily Working Hours</th>
+              <th style="text-align: right;">Per Hour Value</th>
+              <th>Project Name</th>
+              <th style="text-align: right;">Project Time (Hrs)</th>
+              <th style="text-align: right;" id="thProjValue">Project Value</th>
+              <th style="text-align: right;">Project Labor Cost</th>
+              <th style="text-align: right;">Margin of Project (Profit)</th>
+              <th style="text-align: right;">Margin %</th>
+              <th style="text-align: center; width: 50px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="sheetBody">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+          <tfoot>
+            <tr id="footerSummary">
+              <td colspan="2" style="text-align: left;">TOTALS / SUMMARY</td>
+              <td id="sumSalary" style="text-align: right;">₹0.00</td>
+              <td id="sumCost" style="text-align: right;">₹0.00</td>
+              <td id="sumHours" style="text-align: right;">0</td>
+              <td id="avgHourly" style="text-align: right;">₹0.00/hr</td>
+              <td style="text-align: center; color: var(--text-muted);">-</td>
+              <td id="sumProjHours" style="text-align: right;">0</td>
+              <td id="sumProjValue" style="text-align: right;">₹0.00</td>
+              <td id="sumProjCost" style="text-align: right;">₹0.00</td>
+              <td id="sumMargin" style="text-align: right;">₹0.00</td>
+              <td id="avgMarginPct" style="text-align: right;">0%</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Formula Guide -->
+    <div class="formula-guide">
+      <h4>📐 Calculation Formulas & Currency Rates (Base: INR ₹):</h4>
+      <div class="formula-grid">
+        <div class="formula-card">
+          <strong>Per Hour Value:</strong>
+          <code>Monthly Salary ÷ (Daily Hours × Working Days/Month)</code>
+          <p style="margin-top: 4px; color: var(--text-muted);">e.g. ₹45,000 ÷ (8 hrs × 22 days) = ₹255.68/hr</p>
+        </div>
+        <div class="formula-card">
+          <strong>Project Labor Cost:</strong>
+          <code>Project Time (Hours) × Per Hour Value</code>
+          <p style="margin-top: 4px; color: var(--text-muted);">Cost incurred to deliver this client project.</p>
+        </div>
+        <div class="formula-card">
+          <strong>Margin of Project (Profit):</strong>
+          <code>Project Value - Project Labor Cost</code>
+          <p style="margin-top: 4px; color: var(--text-muted);">Gross profit generated from the engagement.</p>
+        </div>
+        <div class="formula-card">
+          <strong>Currency Conversion (From Base INR):</strong>
+          <code>USD = INR ÷ 94.94 | AED = INR ÷ 25.85</code>
+          <p style="margin-top: 4px; color: var(--text-muted);">Converts accurately when toggling currency.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Adding New Employee / Candidate -->
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Hire / Add New Candidate</h2>
+        <button class="btn-icon" onclick="closeAddModal()" style="font-size: 18px;">✕</button>
+      </div>
+      <form id="addCandidateForm" onsubmit="saveCandidate(event)">
+        <div class="modal-body">
+          <div class="form-group full">
+            <label>Candidate / Employee Name *</label>
+            <input type="text" id="modalName" required placeholder="e.g., Emily Chen (Performance Marketer)">
+          </div>
+
+          <div class="form-group">
+            <label id="lblModalSalary">Monthly Salary *</label>
+            <input type="number" id="modalSalary" required min="0" step="any" placeholder="e.g., 40000">
+          </div>
+
+          <div class="form-group">
+            <label id="lblModalCost">Extra Cost (Rent/Overhead)</label>
+            <input type="number" id="modalCost" min="0" step="any" placeholder="e.g. 5000">
+          </div>
+
+          <div class="form-group">
+            <label>Daily Working Hours *</label>
+            <input type="number" id="modalHours" required min="1" max="24" step="0.5" placeholder="e.g. 8">
+          </div>
+
+          <div class="form-group">
+            <label>Working Days / Month</label>
+            <input type="number" id="modalDaysPerMonth" min="1" max="31" step="1" placeholder="e.g. 22 (default)">
+          </div>
+
+          <div class="form-group">
+            <label>Project Name (Optional)</label>
+            <input type="text" id="modalProjName" placeholder="Leave blank if not assigned yet">
+          </div>
+
+          <div class="form-group">
+            <label>Project Time (Hours)</label>
+            <input type="number" id="modalProjTime" min="0" step="1" placeholder="e.g. 0">
+          </div>
+
+          <div class="form-group">
+            <label id="lblModalProjValue">Project Value (Client Fee)</label>
+            <input type="number" id="modalProjValue" min="0" step="any" placeholder="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add to Sheet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Editing Exchange Rates -->
+  <div class="modal-overlay" id="rateModal">
+    <div class="modal" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2>Exchange Rates (vs Base INR)</h2>
+        <button class="btn-icon" onclick="closeRateModal()" style="font-size: 18px;">✕</button>
+      </div>
+      <form onsubmit="saveCustomRates(event)">
+        <div class="modal-body" style="grid-template-columns: 1fr;">
+          <div class="form-group">
+            <label>1 USD in INR (Indian Rupee):</label>
+            <input type="number" id="rateInputUSD" step="0.01" min="1" value="94.94" required>
+            <small style="color: var(--text-muted); font-size: 11px;">Exact market rate: $1 = ₹94.94</small>
+          </div>
+          <div class="form-group">
+            <label>1 AED in INR (Indian Rupee):</label>
+            <input type="number" id="rateInputAED" step="0.01" min="0.1" value="25.85" required>
+            <small style="color: var(--text-muted); font-size: 11px;">Exact market rate: 1 AED = ₹25.85</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeRateModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Rates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // BASE CURRENCY IS INR
+    let currentCurrency = "INR";
+
+    // Live Exact Exchange Rates relative to Base INR (as per current market):
+    // How many INR per 1 unit of foreign currency
+    let inrRates = {
+      INR: 1.0,      // 1 INR = 1 INR
+      USD: 94.94,    // 1 USD = 94.94 INR  => USD = INR / 94.94
+      AED: 25.85     // 1 AED = 25.85 INR  => AED = INR / 25.85
+    };
+
+    const currencyMeta = {
+      INR: { symbol: "₹", code: "INR", locale: "en-IN", name: "INR (₹) - Base" },
+      USD: { symbol: "$", code: "USD", locale: "en-US", name: "USD ($)" },
+      AED: { symbol: "AED ", code: "AED", locale: "en-AE", name: "AED (Dirhams)" }
+    };
+
+    // Canonical BASE Data in INR (₹)
+    const defaultEmployeesINR = [
+      {
+        id: 1,
+        name: "Alex Morgan (SEO Lead)",
+        baseSalary: 45000.0,
+        baseCost: 6000.0,
+        workingHours: 8.0,
+        workingDaysPerMonth: 22,
+        projectName: "Tech Corp SEO & Organic Growth",
+        projectTime: 80.0,
+        baseProjectValue: 55000.0
+      },
+      {
+        id: 2,
+        name: "Sarah Jenkins (Paid Ads Manager)",
+        baseSalary: 40000.0,
+        baseCost: 6000.0,
+        workingHours: 8.0,
+        workingDaysPerMonth: 22,
+        projectName: "Q4 E-Commerce Meta & Google Ads",
+        projectTime: 90.0,
+        baseProjectValue: 52000.0
+      },
+      {
+        id: 3,
+        name: "David Kim (Content Strategist)",
+        baseSalary: 35000.0,
+        baseCost: 5000.0,
+        workingHours: 8.0,
+        workingDaysPerMonth: 22,
+        projectName: "SaaS Lead Gen Content Hub",
+        projectTime: 70.0,
+        baseProjectValue: 40000.0
+      },
+      {
+        id: 4,
+        name: "Elena Rostova (Creative & Social Lead)",
+        baseSalary: 38000.0,
+        baseCost: 5000.0,
+        workingHours: 8.0,
+        workingDaysPerMonth: 22,
+        projectName: "Fintech Brand Refresh & Social",
+        projectTime: 75.0,
+        baseProjectValue: 45000.0
+      }
+    ];
+
+    let baseOverheadINR = {
+      rent: 25000.0,
+      software: 12000.0,
+      misc: 8000.0
+    };
+
+    let employees = [];
+
+    function init() {
+      // Clear legacy storage schemas from previous sessions
+      localStorage.removeItem("marketing_sheet_data");
+      localStorage.removeItem("marketing_sheet_employees_usd");
+      localStorage.removeItem("marketing_overhead_usd");
+      localStorage.removeItem("marketing_inr_exchange_rates");
+
+      // Load saved rates if any (v2)
+      const savedRates = localStorage.getItem("marketing_inr_exchange_rates_v2");
+      if (savedRates) {
+        try {
+          inrRates = JSON.parse(savedRates);
+        } catch(e) {}
+      }
+
+      // Load saved overhead in INR
+      const savedOverhead = localStorage.getItem("marketing_overhead_inr_base");
+      if (savedOverhead) {
+        try {
+          baseOverheadINR = JSON.parse(savedOverhead);
+        } catch(e) {}
+      }
+
+      // Load saved employees in INR
+      const savedEmp = localStorage.getItem("marketing_sheet_employees_inr_base");
+      if (savedEmp) {
+        try {
+          employees = JSON.parse(savedEmp);
+        } catch (e) {
+          employees = JSON.parse(JSON.stringify(defaultEmployeesINR));
+        }
+      } else {
+        employees = JSON.parse(JSON.stringify(defaultEmployeesINR));
+      }
+
+      // Always start with INR or load saved selection
+      const savedCurr = localStorage.getItem("marketing_active_currency_v2");
+      if (savedCurr && ["INR", "USD", "AED"].includes(savedCurr)) {
+        currentCurrency = savedCurr;
+      } else {
+        currentCurrency = "INR";
+      }
+      document.getElementById("currencySelect").value = currentCurrency;
+
+      updateRateDisplay();
+      renderAll();
+    }
+
+    function saveState() {
+      localStorage.setItem("marketing_sheet_employees_inr_base", JSON.stringify(employees));
+      localStorage.setItem("marketing_overhead_inr_base", JSON.stringify(baseOverheadINR));
+      localStorage.setItem("marketing_active_currency_v2", currentCurrency);
+    }
+
+    function updateRateDisplay() {
+      document.getElementById("rateDisplay").innerHTML = `
+        <span>Rates: 1 USD = ₹${inrRates.USD.toFixed(2)} | 1 AED = ₹${inrRates.AED.toFixed(2)}</span>
+        <button onclick="openRateModal()">Edit Rates</button>
+      `;
+    }
+
+    // Convert from Base INR to Current Currency
+    function convertFromINR(inrAmount) {
+      if (currentCurrency === "INR") return inrAmount;
+      if (currentCurrency === "USD") return inrAmount / inrRates.USD;
+      if (currentCurrency === "AED") return inrAmount / inrRates.AED;
+      return inrAmount;
+    }
+
+    // Convert from Current Currency back to Base INR
+    function convertToINR(currentAmount) {
+      if (currentCurrency === "INR") return currentAmount;
+      if (currentCurrency === "USD") return currentAmount * inrRates.USD;
+      if (currentCurrency === "AED") return currentAmount * inrRates.AED;
+      return currentAmount;
+    }
+
+    function formatMoney(amountInCurrentCurrency) {
+      const meta = currencyMeta[currentCurrency];
+      const val = Number(amountInCurrentCurrency || 0);
+
+      const formattedNumber = val.toLocaleString(meta.locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      return meta.symbol + formattedNumber;
+    }
+
+    function onCurrencyChange() {
+      currentCurrency = document.getElementById("currencySelect").value;
+      saveState();
+      renderAll();
+    }
+
+    function renderAll() {
+      const meta = currencyMeta[currentCurrency];
+
+      // Update prefixes & notices
+      document.getElementById("prefixRent").textContent = meta.symbol.trim();
+      document.getElementById("prefixSoftware").textContent = meta.symbol.trim();
+      document.getElementById("prefixMisc").textContent = meta.symbol.trim();
+      document.getElementById("activeCurrencyNotice").innerHTML = `Active Currency: <strong>${meta.name}</strong>`;
+
+      // Update Table Headers
+      document.getElementById("thSalary").textContent = `Salary (${meta.symbol.trim()})`;
+      document.getElementById("thCost").textContent = `Cost (${meta.symbol.trim()})`;
+      document.getElementById("thProjValue").textContent = `Project Value (${meta.symbol.trim()})`;
+
+      // Update Overhead Inputs in Current Currency
+      document.getElementById("rentInput").value = Math.round(convertFromINR(baseOverheadINR.rent) * 100) / 100;
+      document.getElementById("softwareInput").value = Math.round(convertFromINR(baseOverheadINR.software) * 100) / 100;
+      document.getElementById("miscInput").value = Math.round(convertFromINR(baseOverheadINR.misc) * 100) / 100;
+
+      // Render Table Rows
+      const tbody = document.getElementById("sheetBody");
+      tbody.innerHTML = "";
+
+      let totSalaryCur = 0;
+      let totCostCur = 0;
+      let totHours = 0;
+      let totProjHours = 0;
+      let totProjValCur = 0;
+      let totLaborCostCur = 0;
+      let totMarginCur = 0;
+
+      employees.forEach((emp, index) => {
+        // Converted from base INR to currentCurrency
+        const salaryCur = Math.round(convertFromINR(emp.baseSalary) * 100) / 100;
+        const costCur = Math.round(convertFromINR(emp.baseCost) * 100) / 100;
+        const hours = parseFloat(emp.workingHours) || 8;
+        const daysPerMonth = parseFloat(emp.workingDaysPerMonth) || 22;
+        const monthlyHours = hours * daysPerMonth;
+        const projHours = parseFloat(emp.projectTime) || 0;
+        const projValCur = Math.round(convertFromINR(emp.baseProjectValue) * 100) / 100;
+
+        // Per hour value: Monthly Salary ÷ (Daily Hours × Working Days/Month)
+        const perHourValCur = monthlyHours > 0 ? (salaryCur / monthlyHours) : 0;
+        const laborCostCur = projHours * perHourValCur;
+        const marginCur = projValCur - laborCostCur;
+        const marginPct = projValCur > 0 ? ((marginCur / projValCur) * 100) : 0;
+
+        totSalaryCur += salaryCur;
+        totCostCur += costCur;
+        totHours += hours;  // daily hours per employee
+        totProjHours += projHours;
+        totProjValCur += projValCur;
+        totLaborCostCur += laborCostCur;
+        totMarginCur += marginCur;
+
+        const isPositive = marginCur >= 0;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align: center; color: var(--text-muted); font-weight: 600;">${index + 1}</td>
+          <td>
+            <input type="text" class="cell-input" value="${escapeHtml(emp.name)}" 
+              onchange="onNameChange(${index}, this.value)" style="min-width: 190px; font-weight: 600;">
+          </td>
+          <td>
+            <input type="number" class="cell-input number" value="${salaryCur}" step="any" min="0"
+              onchange="onSalaryChange(${index}, this.value)">
+          </td>
+          <td>
+            <input type="number" class="cell-input number" value="${costCur}" step="any" min="0" title="Extra cost e.g. rent/overhead for this member"
+              onchange="onCostChange(${index}, this.value)">
+          </td>
+          <td>
+            <input type="number" class="cell-input number" value="${hours}" step="0.5" min="0.5" max="24"
+              title="Daily working hours (e.g. 8). Per Hour = Monthly Salary ÷ (Daily Hours × ${daysPerMonth} days)"
+              onchange="onHoursChange(${index}, this.value)">
+          </td>
+          <td class="calc-cell" title="Monthly Salary ÷ (${hours} hrs/day × ${daysPerMonth} days) = ${formatMoney(perHourValCur)}/hr">
+            ${formatMoney(perHourValCur)}/hr
+          </td>
+          <td>
+            <input type="text" class="cell-input" value="${escapeHtml(emp.projectName || '')}" 
+              placeholder="No project assigned"
+              onchange="onProjectNameChange(${index}, this.value)" style="min-width: 210px;">
+          </td>
+          <td>
+            <input type="number" class="cell-input number" value="${projHours}" step="1" min="0"
+              onchange="onProjectHoursChange(${index}, this.value)">
+          </td>
+          <td>
+            <input type="number" class="cell-input number" value="${projValCur}" step="any" min="0"
+              onchange="onProjectValueChange(${index}, this.value)">
+          </td>
+          <td class="calc-cell" style="color: #64748b;" title="Formula: Project Time × Per Hour Value">
+            ${formatMoney(laborCostCur)}
+          </td>
+          <td style="text-align: right;">
+            <span class="profit-pill ${isPositive ? 'positive' : 'negative'}">
+              ${isPositive ? '+' : ''}${formatMoney(marginCur)}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <span class="profit-pill ${isPositive ? 'positive' : 'negative'}">
+              ${marginPct.toFixed(1)}%
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <button class="btn-icon" onclick="deleteRow(${index})" title="Delete candidate/employee">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update Table Footer
+      document.getElementById("sumSalary").textContent = formatMoney(totSalaryCur);
+      document.getElementById("sumCost").textContent = formatMoney(totCostCur);
+      document.getElementById("sumHours").textContent = totHours.toLocaleString() + " hrs/day total";
+
+      // Avg hourly rate: total monthly salary / total monthly hours for all staff
+      const totMonthlyHours = employees.reduce((sum, emp) => {
+        return sum + ((parseFloat(emp.workingHours) || 8) * (parseFloat(emp.workingDaysPerMonth) || 22));
+      }, 0);
+      const overallAvgHourly = totMonthlyHours > 0 ? (totSalaryCur / totMonthlyHours) : 0;
+      document.getElementById("avgHourly").textContent = formatMoney(overallAvgHourly) + "/hr";
+
+      document.getElementById("sumProjHours").textContent = totProjHours.toLocaleString() + " hrs";
+      document.getElementById("sumProjValue").textContent = formatMoney(totProjValCur);
+      document.getElementById("sumProjCost").textContent = formatMoney(totLaborCostCur);
+
+      const isTotalPositive = totMarginCur >= 0;
+      const marginEl = document.getElementById("sumMargin");
+      marginEl.textContent = (isTotalPositive ? "+" : "") + formatMoney(totMarginCur);
+      marginEl.style.color = isTotalPositive ? "var(--success-text)" : "var(--danger-text)";
+
+      const totMarginPct = totProjValCur > 0 ? ((totMarginCur / totProjValCur) * 100) : 0;
+      const marginPctEl = document.getElementById("avgMarginPct");
+      marginPctEl.textContent = totMarginPct.toFixed(1) + "%";
+      marginPctEl.style.color = isTotalPositive ? "var(--success-text)" : "var(--danger-text)";
+
+      // Update KPI Cards
+      document.getElementById("kpiTeamSize").textContent = employees.length;
+      document.getElementById("kpiTeamSub").textContent = `${employees.length} Active Staff / Candidates`;
+      document.getElementById("kpiTotalSalary").textContent = formatMoney(totSalaryCur);
+      document.getElementById("kpiTotalSalarySub").textContent = `In ${meta.name}`;
+
+      const totalOverheadBase = baseOverheadINR.rent + baseOverheadINR.software + baseOverheadINR.misc;
+      document.getElementById("kpiTotalCost").textContent = formatMoney(convertFromINR(totalOverheadBase));
+
+      document.getElementById("kpiTotalRevenue").textContent = formatMoney(totProjValCur);
+
+      const kpiMargin = document.getElementById("kpiTotalMargin");
+      kpiMargin.textContent = (isTotalPositive ? "+" : "") + formatMoney(totMarginCur);
+      kpiMargin.style.color = isTotalPositive ? "#166534" : "#991b1b";
+
+      document.getElementById("kpiMarginPct").textContent = `${totMarginPct.toFixed(1)}% Overall Profit Margin`;
+    }
+
+    // Input Handlers: Convert from Current Currency back to Base INR
+    function onSalaryChange(index, valueInCurrentCurrency) {
+      const val = parseFloat(valueInCurrentCurrency) || 0;
+      employees[index].baseSalary = convertToINR(val);
+      saveState();
+      renderAll();
+    }
+
+    function onCostChange(index, valueInCurrentCurrency) {
+      const val = parseFloat(valueInCurrentCurrency) || 0;
+      employees[index].baseCost = convertToINR(val);
+      saveState();
+      renderAll();
+    }
+
+    function onProjectValueChange(index, valueInCurrentCurrency) {
+      const val = parseFloat(valueInCurrentCurrency) || 0;
+      employees[index].baseProjectValue = convertToINR(val);
+      saveState();
+      renderAll();
+    }
+
+    function onNameChange(index, val) {
+      employees[index].name = val;
+      saveState();
+    }
+
+    function onProjectNameChange(index, val) {
+      employees[index].projectName = val;
+      saveState();
+    }
+
+    function onHoursChange(index, val) {
+      employees[index].workingHours = parseFloat(val) || 8;
+      saveState();
+      renderAll();
+    }
+
+    function onProjectHoursChange(index, val) {
+      employees[index].projectTime = parseFloat(val) || 0;
+      saveState();
+      renderAll();
+    }
+
+    function onOverheadInputChange() {
+      const rentCur = parseFloat(document.getElementById("rentInput").value) || 0;
+      const softwareCur = parseFloat(document.getElementById("softwareInput").value) || 0;
+      const miscCur = parseFloat(document.getElementById("miscInput").value) || 0;
+
+      baseOverheadINR.rent = convertToINR(rentCur);
+      baseOverheadINR.software = convertToINR(softwareCur);
+      baseOverheadINR.misc = convertToINR(miscCur);
+
+      saveState();
+      renderAll();
+    }
+
+    // Add overhead share on top of each employee's existing cost
+    function addOverheadToCurrentCost() {
+      if (employees.length === 0) return;
+      const totalOverheadINR = baseOverheadINR.rent + baseOverheadINR.software + baseOverheadINR.misc;
+      const perEmployeeOverheadINR = Math.round((totalOverheadINR / employees.length) * 100) / 100;
+
+      const totalCurStr = formatMoney(convertFromINR(totalOverheadINR));
+      const perHeadCurStr = formatMoney(convertFromINR(perEmployeeOverheadINR));
+
+      if (confirm(`Add ${perHeadCurStr} (overhead share of ${totalCurStr}) ON TOP of each employee's current cost?\n\nExample: If current cost is ₹6,000, new cost will be ₹6,000 + ${perHeadCurStr}.`)) {
+        employees.forEach(emp => {
+          emp.baseCost = Math.round(((parseFloat(emp.baseCost) || 0) + perEmployeeOverheadINR) * 100) / 100;
+        });
+        saveState();
+        renderAll();
+      }
+    }
+
+    // Set each employee's cost to the exact equal overhead share
+    function setOverheadEqually() {
+      if (employees.length === 0) return;
+      const totalOverheadINR = baseOverheadINR.rent + baseOverheadINR.software + baseOverheadINR.misc;
+      const perEmployeeOverheadINR = Math.round((totalOverheadINR / employees.length) * 100) / 100;
+
+      const totalCurStr = formatMoney(convertFromINR(totalOverheadINR));
+      const perHeadCurStr = formatMoney(convertFromINR(perEmployeeOverheadINR));
+
+      if (confirm(`Replace each employee's cost with exactly ${perHeadCurStr} (equal split of ${totalCurStr})?`)) {
+        employees.forEach(emp => {
+          emp.baseCost = perEmployeeOverheadINR;
+        });
+        saveState();
+        renderAll();
+      }
+    }
+
+    function distributeOverheadEqually() {
+      addOverheadToCurrentCost();
+    }
+
+    function deleteRow(index) {
+      if (confirm(`Are you sure you want to remove "${employees[index].name}"?`)) {
+        employees.splice(index, 1);
+        saveState();
+        renderAll();
+      }
+    }
+
+    function resetToInitial() {
+      if (confirm("Reset sheet back to default 4 employees and overheads in INR (₹)?")) {
+        employees = JSON.parse(JSON.stringify(defaultEmployeesINR));
+        baseOverheadINR = { rent: 25000, software: 12000, misc: 8000 };
+        currentCurrency = "INR";
+        document.getElementById("currencySelect").value = "INR";
+        saveState();
+        renderAll();
+      }
+    }
+
+    // Modal Add Candidate
+    function openAddModal() {
+      const meta = currencyMeta[currentCurrency];
+
+      document.getElementById("modalTitle").textContent = `Add Candidate / Future Hire (${meta.name})`;
+      document.getElementById("lblModalSalary").textContent = `Monthly Salary (${meta.symbol.trim()}) *`;
+      document.getElementById("lblModalCost").textContent = `Extra Cost / Rent (${meta.symbol.trim()})`;
+      document.getElementById("lblModalProjValue").textContent = `Project Value (${meta.symbol.trim()})`;
+
+      const totalOverheadINR = baseOverheadINR.rent + baseOverheadINR.software + baseOverheadINR.misc;
+      const defaultPerHeadINR = totalOverheadINR / (employees.length + 1);
+      const defaultPerHeadCur = Math.round(convertFromINR(defaultPerHeadINR));
+
+      // Reset form so all inputs are empty (showing only placeholders)
+      document.getElementById("addCandidateForm").reset();
+
+      // Set only placeholders (NO pre-filled values)
+      document.getElementById("modalCost").value = "";
+      document.getElementById("modalCost").placeholder = `e.g. ${defaultPerHeadCur}`;
+
+      document.getElementById("modalHours").value = "";
+      document.getElementById("modalHours").placeholder = "e.g. 8";
+
+      document.getElementById("modalDaysPerMonth").value = "";
+      document.getElementById("modalDaysPerMonth").placeholder = "e.g. 22 (default)";
+
+      document.getElementById("modalProjTime").value = "";
+      document.getElementById("modalProjTime").placeholder = "e.g. 0";
+
+      document.getElementById("modalSalary").placeholder = currentCurrency === 'INR' ? "e.g. 40000" : (currentCurrency === 'AED' ? "e.g. 1550" : "e.g. 420");
+      document.getElementById("modalProjValue").placeholder = currentCurrency === 'INR' ? "e.g. 50000" : (currentCurrency === 'AED' ? "e.g. 1950" : "e.g. 525");
+
+      document.getElementById("addModal").style.display = "flex";
+      document.getElementById("modalName").focus();
+    }
+
+    function closeAddModal() {
+      document.getElementById("addModal").style.display = "none";
+      document.getElementById("addCandidateForm").reset();
+    }
+
+    function saveCandidate(e) {
+      e.preventDefault();
+
+      const hoursInput = document.getElementById("modalHours").value.trim();
+      const workingHours = parseFloat(hoursInput);
+      if (!hoursInput || isNaN(workingHours) || workingHours <= 0) {
+        alert("Daily Working Hours is mandatory. Please enter valid daily working hours (e.g. 8).");
+        document.getElementById("modalHours").focus();
+        return;
+      }
+      const daysInput = document.getElementById("modalDaysPerMonth").value.trim();
+      const workingDaysPerMonth = (daysInput && !isNaN(parseFloat(daysInput)) && parseFloat(daysInput) > 0)
+        ? parseFloat(daysInput) : 22;
+
+      const salaryCur = parseFloat(document.getElementById("modalSalary").value) || 0;
+      const costCur = parseFloat(document.getElementById("modalCost").value) || 0;
+      const projValCur = parseFloat(document.getElementById("modalProjValue").value) || 0;
+      const projTime = parseFloat(document.getElementById("modalProjTime").value) || 0;
+      const projName = document.getElementById("modalProjName").value.trim(); // No automatic default, stays blank if not entered
+
+      const newEmp = {
+        id: Date.now(),
+        name: document.getElementById("modalName").value.trim(),
+        baseSalary: convertToINR(salaryCur),
+        baseCost: convertToINR(costCur),
+        workingHours: workingHours,
+        workingDaysPerMonth: workingDaysPerMonth,
+        projectName: projName, // Completely empty if left blank
+        projectTime: projTime,
+        baseProjectValue: convertToINR(projValCur)
+      };
+
+      employees.push(newEmp);
+      saveState();
+      closeAddModal();
+      renderAll();
+    }
+
+    // Modal Exchange Rates
+    function openRateModal() {
+      document.getElementById("rateInputUSD").value = inrRates.USD;
+      document.getElementById("rateInputAED").value = inrRates.AED;
+      document.getElementById("rateModal").style.display = "flex";
+    }
+
+    function closeRateModal() {
+      document.getElementById("rateModal").style.display = "none";
+    }
+
+    function saveCustomRates(e) {
+      e.preventDefault();
+      const newUSD = parseFloat(document.getElementById("rateInputUSD").value) || 94.94;
+      const newAED = parseFloat(document.getElementById("rateInputAED").value) || 25.85;
+
+      inrRates.USD = newUSD;
+      inrRates.AED = newAED;
+
+      localStorage.setItem("marketing_inr_exchange_rates_v2", JSON.stringify(inrRates));
+      updateRateDisplay();
+      closeRateModal();
+      renderAll();
+    }
+
+    // Styled Excel Export (.xlsx) matching the screenshot format exactly
+    async function exportToExcel() {
+      if (typeof ExcelJS === "undefined") {
+        alert("Excel export engine is loading. Please try again in a moment.");
+        return;
+      }
+
+      const wb = new ExcelJS.Workbook();
+      wb.creator = "Marketing Agency Financial Tracker";
+      wb.lastModifiedBy = "Marketing Agency Financial Tracker";
+      wb.created = new Date();
+      wb.modified = new Date();
+
+      // Palette definition matching the Excel screenshot format
+      const PRIMARY_NAVY = 'FF1E3A8A';
+      const HEADER_WHITE = 'FFFFFFFF';
+      const ROW_ALT_BG = 'FFF8FAFC';
+      const TOTAL_ROW_BG = 'FFE2E8F0';
+      const PROFIT_GREEN_BG = 'FFDCFCE7';
+      const PROFIT_GREEN_TXT = 'FF166534';
+      const MUTED_GRAY = 'FF64748B';
+      const BORDER_COLOR = 'FFCBD5E1';
+      const DARK_BORDER = 'FF0F172A';
+
+      const thinBorder = {
+        top: { style: 'thin', color: { argb: BORDER_COLOR } },
+        left: { style: 'thin', color: { argb: BORDER_COLOR } },
+        bottom: { style: 'thin', color: { argb: BORDER_COLOR } },
+        right: { style: 'thin', color: { argb: BORDER_COLOR } }
+      };
+
+      const totalBorder = {
+        top: { style: 'medium', color: { argb: DARK_BORDER } },
+        left: { style: 'thin', color: { argb: BORDER_COLOR } },
+        bottom: { style: 'double', color: { argb: DARK_BORDER } },
+        right: { style: 'thin', color: { argb: BORDER_COLOR } }
+      };
+
+      // Helper function to build each sheet
+      function buildStyledSheet(sheetTitle, currencySymbol, divisor, numberFormatStr, isBase) {
+        const ws = wb.addWorksheet(sheetTitle);
+        ws.views = [{ showGridLines: true }];
+
+        // Row 1: Title
+        ws.mergeCells('A1:K1');
+        const a1 = ws.getCell('A1');
+        a1.value = `MARKETING AGENCY - FINANCIAL TRACKER ${isBase ? '[BASE CURRENCY]' : '[CONVERTED CURRENCY]'}`;
+        a1.font = { name: 'Calibri', size: 15, bold: true, color: { argb: PRIMARY_NAVY } };
+        a1.alignment = { vertical: 'middle' };
+        ws.getRow(1).height = 24;
+
+        // Row 2: Subtitle
+        ws.mergeCells('A2:K2');
+        const a2 = ws.getCell('A2');
+        a2.value = isBase
+          ? `Currency: ${currencySymbol} (Primary Agency Accounting Base) | ${employees.length} Active Employees`
+          : `Currency: ${currencySymbol} (Converted from Base INR at rate ₹${divisor.toFixed(2)} per 1 ${currencySymbol})`;
+        a2.font = { name: 'Calibri', size: 10, italic: true, color: { argb: MUTED_GRAY } };
+        a2.alignment = { vertical: 'middle' };
+        ws.getRow(2).height = 18;
+
+        // Row 3: Blank separator
+        ws.getRow(3).height = 10;
+
+        // Row 4: Table Headers
+        const headers = [
+          "Employee Name",
+          `Monthly Salary (${currencySymbol.trim()})`,
+          `Cost (Rent/Extras)\n(${currencySymbol.trim()})`,
+          "Daily Working\nHours",
+          `Per Hour Value (${currencySymbol.trim()})\n[Salary÷(Hrs×Days)]`,
+          "Project Name",
+          "Project Time\n(Hours)",
+          `Project Value (${currencySymbol.trim()})`,
+          `Project Labor Cost\n(${currencySymbol.trim()})`,
+          `Margin of Project\n(${currencySymbol.trim()})`,
+          "Margin %"
+        ];
+
+        const headerRow = ws.getRow(4);
+        headerRow.height = 28;
+        headers.forEach((h, idx) => {
+          const colNum = idx + 1;
+          const cell = headerRow.getCell(colNum);
+          cell.value = h;
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: HEADER_WHITE } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: PRIMARY_NAVY } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = thinBorder;
+        });
+
+        // Rows 5+: Active Employee Data Rows
+        let startRow = 5;
+        let currentRow = startRow;
+
+        employees.forEach((emp, i) => {
+          const r = currentRow;
+          const row = ws.getRow(r);
+          row.height = 22;
+
+          const salaryConv = Math.round((emp.baseSalary / divisor) * 100) / 100;
+          const costConv = Math.round((emp.baseCost / divisor) * 100) / 100;
+          const dailyHours = parseFloat(emp.workingHours) || 8;
+          const daysPerMonth = parseFloat(emp.workingDaysPerMonth) || 22;
+          const monthlyHoursEmp = dailyHours * daysPerMonth;
+          const projHours = parseFloat(emp.projectTime) || 0;
+          const projValConv = Math.round((emp.baseProjectValue / divisor) * 100) / 100;
+
+          row.getCell(1).value = emp.name || "";
+          row.getCell(2).value = salaryConv;
+          row.getCell(3).value = costConv;
+          row.getCell(4).value = dailyHours;
+
+          // Per Hour Value Formula: Monthly Salary ÷ (Daily Hours × Working Days/Month)
+          const perHourEst = monthlyHoursEmp > 0 ? salaryConv / monthlyHoursEmp : 0;
+          row.getCell(5).value = { formula: `B${r}/(D${r}*${daysPerMonth})`, result: perHourEst };
+
+          row.getCell(6).value = emp.projectName || "";
+          row.getCell(7).value = projHours;
+          row.getCell(8).value = projValConv;
+
+          // Project Labor Cost Formula: =G{r}*E{r}
+          const laborCostEst = perHourEst * projHours;
+          row.getCell(9).value = { formula: `G${r}*E${r}`, result: laborCostEst };
+
+          // Margin Formula: =H{r}-I{r}
+          const marginEst = projValConv - laborCostEst;
+          row.getCell(10).value = { formula: `H${r}-I${r}`, result: marginEst };
+
+          // Margin % Formula: =IF(H{r}>0, J{r}/H{r}, 0)
+          row.getCell(11).value = { formula: `IF(H${r}>0, J${r}/H{r}, 0)`, result: projValConv > 0 ? marginEst / projValConv : 0 };
+
+          const isAlt = (i % 2 === 1);
+          for (let c = 1; c <= 11; c++) {
+            const cell = row.getCell(c);
+            cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF0F172A' } };
+            cell.border = thinBorder;
+            if (isAlt) {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ROW_ALT_BG } };
+            }
+          }
+
+          // Cell Alignments & Number Formats
+          row.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+          row.getCell(2).numFmt = numberFormatStr;
+          row.getCell(3).numFmt = numberFormatStr;
+          row.getCell(4).numFmt = '#,##0';
+          row.getCell(5).numFmt = numberFormatStr;
+          row.getCell(6).alignment = { horizontal: 'left', vertical: 'middle' };
+          row.getCell(7).numFmt = '#,##0.0';
+          row.getCell(8).numFmt = numberFormatStr;
+          row.getCell(9).numFmt = numberFormatStr;
+
+          // Profit Pill Cells (Columns J & K)
+          const cellMargin = row.getCell(10);
+          cellMargin.numFmt = numberFormatStr;
+          cellMargin.font = { name: 'Calibri', size: 10, bold: true, color: { argb: PROFIT_GREEN_TXT } };
+          cellMargin.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: PROFIT_GREEN_BG } };
+
+          const cellMarginPct = row.getCell(11);
+          cellMarginPct.numFmt = '0.0%';
+          cellMarginPct.font = { name: 'Calibri', size: 10, bold: true, color: { argb: PROFIT_GREEN_TXT } };
+          cellMarginPct.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: PROFIT_GREEN_BG } };
+
+          currentRow++;
+        });
+
+        // Totals Row (Immediately follows active employees)
+        const totalRowIdx = currentRow;
+        const totalRow = ws.getRow(totalRowIdx);
+        totalRow.height = 25;
+
+        const firstDataRow = startRow;
+        const lastDataRow = currentRow - 1;
+
+        totalRow.getCell(1).value = "TOTAL / SUMMARY";
+        totalRow.getCell(2).value = { formula: `SUM(B${firstDataRow}:B${lastDataRow})` };
+        totalRow.getCell(3).value = { formula: `SUM(C${firstDataRow}:C${lastDataRow})` };
+        totalRow.getCell(4).value = { formula: `SUM(D${firstDataRow}:D${lastDataRow})` };
+        totalRow.getCell(5).value = { formula: `AVERAGE(E${firstDataRow}:E${lastDataRow})` };
+        totalRow.getCell(6).value = "-";
+        totalRow.getCell(7).value = { formula: `SUM(G${firstDataRow}:G${lastDataRow})` };
+        totalRow.getCell(8).value = { formula: `SUM(H${firstDataRow}:H${lastDataRow})` };
+        totalRow.getCell(9).value = { formula: `SUM(I${firstDataRow}:I${lastDataRow})` };
+        totalRow.getCell(10).value = { formula: `SUM(J${firstDataRow}:J${lastDataRow})` };
+        totalRow.getCell(11).value = { formula: `IF(H${totalRowIdx}>0, J${totalRowIdx}/H${totalRowIdx}, 0)` };
+
+        for (let c = 1; c <= 11; c++) {
+          const cell = totalRow.getCell(c);
+          cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF0F172A' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_ROW_BG } };
+          cell.border = totalBorder;
+        }
+
+        totalRow.getCell(2).numFmt = numberFormatStr;
+        totalRow.getCell(3).numFmt = numberFormatStr;
+        totalRow.getCell(4).numFmt = '#,##0';
+        totalRow.getCell(5).numFmt = numberFormatStr;
+        totalRow.getCell(6).alignment = { horizontal: 'center', vertical: 'middle' };
+        totalRow.getCell(7).numFmt = '#,##0.0';
+        totalRow.getCell(8).numFmt = numberFormatStr;
+        totalRow.getCell(9).numFmt = numberFormatStr;
+        totalRow.getCell(10).numFmt = numberFormatStr;
+        totalRow.getCell(11).numFmt = '0.0%';
+
+        // Column Widths matching screenshot
+        ws.getColumn(1).width = 30; // Name
+        ws.getColumn(2).width = 20; // Salary
+        ws.getColumn(3).width = 20; // Cost
+        ws.getColumn(4).width = 18; // Hours
+        ws.getColumn(5).width = 18; // Per Hour
+        ws.getColumn(6).width = 32; // Project Name
+        ws.getColumn(7).width = 18; // Project Time
+        ws.getColumn(8).width = 20; // Project Value
+        ws.getColumn(9).width = 20; // Labor Cost
+        ws.getColumn(10).width = 22; // Margin
+        ws.getColumn(11).width = 14; // Margin %
+      }
+
+      // Build Sheet 1: INR (Base Tracker)
+      buildStyledSheet('INR (₹) - Base Tracker', '₹', 1.0, '"₹"#,##,##0.00', true);
+
+      // Build Sheet 2: USD (Converted)
+      buildStyledSheet('USD ($) - Converted', '$', inrRates.USD, '$#,##0.00', false);
+
+      // Build Sheet 3: AED (Converted)
+      buildStyledSheet('AED - Converted', 'AED ', inrRates.AED, '"AED "#,##0.00', false);
+
+      // Build Sheet 4: Rates & Overheads
+      const wsOv = wb.addWorksheet('Rates & Overheads');
+      wsOv.views = [{ showGridLines: true }];
+
+      wsOv.mergeCells('A1:E1');
+      const ovTitle = wsOv.getCell('A1');
+      ovTitle.value = "CURRENCY EXCHANGE RATES & CHANGEABLE OVERHEAD EXPENSES (BASE: INR ₹)";
+      ovTitle.font = { name: 'Calibri', size: 14, bold: true, color: { argb: PRIMARY_NAVY } };
+      wsOv.getRow(1).height = 24;
+
+      // Rates Header (Row 3)
+      wsOv.getRow(3).height = 26;
+      const rateHeaders = ["Currency", "Symbol", "Conversion vs 1 Unit"];
+      rateHeaders.forEach((rh, i) => {
+        const c = wsOv.getRow(3).getCell(i + 1);
+        c.value = rh;
+        c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: HEADER_WHITE } };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: PRIMARY_NAVY } };
+        c.alignment = { horizontal: 'center', vertical: 'middle' };
+        c.border = thinBorder;
+      });
+
+      const rateRows = [
+        ["INR (Base)", "₹", "1.00 INR (Base Agency Currency)"],
+        ["USD", "$", `₹${inrRates.USD.toFixed(2)} INR per 1 USD (Divide INR by ${inrRates.USD.toFixed(2)})`],
+        ["AED", "AED", `₹${inrRates.AED.toFixed(2)} INR per 1 AED (Divide INR by ${inrRates.AED.toFixed(2)})`]
+      ];
+
+      rateRows.forEach((rr, i) => {
+        const rIdx = 4 + i;
+        const row = wsOv.getRow(rIdx);
+        row.height = 20;
+        row.getCell(1).value = rr[0];
+        row.getCell(1).font = { name: 'Calibri', size: 10, bold: true };
+        row.getCell(2).value = rr[1];
+        row.getCell(3).value = rr[2];
+        for (let c = 1; c <= 3; c++) {
+          row.getCell(c).border = thinBorder;
+        }
+      });
+
+      // Overhead Breakdown (Row 8)
+      wsOv.getRow(8).height = 26;
+      const ovHeaders = ["Expense Category", "Base INR (₹)", "Converted USD ($)", "Converted AED"];
+      ovHeaders.forEach((oh, i) => {
+        const c = wsOv.getRow(8).getCell(i + 1);
+        c.value = oh;
+        c.font = { name: 'Calibri', size: 11, bold: true, color: { argb: HEADER_WHITE } };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+        c.alignment = { horizontal: 'center', vertical: 'middle' };
+        c.border = thinBorder;
+      });
+
+      const ovItems = [
+        ["Office Rent & Co-working", baseOverheadINR.rent],
+        ["Software Tools (SEMrush, Canva, HubSpot)", baseOverheadINR.software],
+        ["Utilities, Internet & Misc", baseOverheadINR.misc]
+      ];
+
+      ovItems.forEach((item, i) => {
+        const rIdx = 9 + i;
+        const row = wsOv.getRow(rIdx);
+        row.height = 20;
+
+        row.getCell(1).value = item[0];
+        row.getCell(2).value = item[1];
+        row.getCell(2).numFmt = '"₹"#,##,##0.00';
+
+        row.getCell(3).value = { formula: `B${rIdx}/${inrRates.USD.toFixed(2)}`, result: item[1] / inrRates.USD };
+        row.getCell(3).numFmt = '$#,##0.00';
+
+        row.getCell(4).value = { formula: `B${rIdx}/${inrRates.AED.toFixed(2)}`, result: item[1] / inrRates.AED };
+        row.getCell(4).numFmt = '"AED "#,##0.00';
+
+        for (let c = 1; c <= 4; c++) {
+          row.getCell(c).border = thinBorder;
+        }
+      });
+
+      // Total Overhead Row (Row 12)
+      const totOvRow = wsOv.getRow(12);
+      totOvRow.height = 22;
+      totOvRow.getCell(1).value = "TOTAL MONTHLY OVERHEAD";
+      totOvRow.getCell(1).font = { name: 'Calibri', size: 10, bold: true };
+
+      totOvRow.getCell(2).value = { formula: "SUM(B9:B11)" };
+      totOvRow.getCell(2).numFmt = '"₹"#,##,##0.00';
+      totOvRow.getCell(2).font = { name: 'Calibri', size: 10, bold: true };
+
+      totOvRow.getCell(3).value = { formula: "SUM(C9:C11)" };
+      totOvRow.getCell(3).numFmt = '$#,##0.00';
+      totOvRow.getCell(3).font = { name: 'Calibri', size: 10, bold: true };
+
+      totOvRow.getCell(4).value = { formula: "SUM(D9:D11)" };
+      totOvRow.getCell(4).numFmt = '"AED "#,##0.00';
+      totOvRow.getCell(4).font = { name: 'Calibri', size: 10, bold: true };
+
+      for (let c = 1; c <= 4; c++) {
+        totOvRow.getCell(c).border = totalBorder;
+      }
+
+      wsOv.getColumn(1).width = 38;
+      wsOv.getColumn(2).width = 20;
+      wsOv.getColumn(3).width = 20;
+      wsOv.getColumn(4).width = 20;
+
+      // Write styled XLSX buffer and download
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", "Marketing_Company_Financial_Tracker.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
