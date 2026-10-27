@@ -578,6 +578,150 @@
       gap: 10px;
     }
 
+    /* ── Project Summary Section ── */
+    .proj-summary-section {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .proj-summary-header {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .proj-summary-header h4 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .proj-summary-badge {
+      background: rgba(255,255,255,0.15);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .proj-summary-table-wrap {
+      overflow-x: auto;
+    }
+
+    .proj-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .proj-summary-table thead th {
+      background: #1e3a8a;
+      color: white;
+      font-weight: 600;
+      padding: 10px 14px;
+      white-space: nowrap;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      text-align: right;
+    }
+
+    .proj-summary-table thead th:first-child {
+      text-align: left;
+    }
+
+    .proj-summary-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .proj-summary-table tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .proj-summary-table tbody tr:hover {
+      background: #f0f9ff;
+    }
+
+    .proj-summary-table tbody td {
+      padding: 10px 14px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .proj-name-cell {
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 200px;
+    }
+
+    .proj-team-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-width: 160px;
+    }
+
+    .proj-team-pill {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .proj-value-input {
+      width: 130px;
+      padding: 5px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: white;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .proj-value-input:focus {
+      border-color: var(--primary-light);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+    }
+
+    .proj-summary-table tfoot tr {
+      background: #e2e8f0;
+      font-weight: 700;
+      border-top: 2px solid #94a3b8;
+    }
+
+    .proj-summary-table tfoot td {
+      padding: 11px 14px;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .proj-summary-table tfoot td:first-child {
+      text-align: left;
+    }
+
+    .proj-summary-hint {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      padding: 8px 20px 10px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+    }
+
     /* Formula Explanation Banner */
     .formula-guide {
       background: white;
@@ -798,6 +942,47 @@
             </tr>
           </tfoot>
         </table>
+      </div>
+    </div>
+
+    <!-- Project Summary Section (auto-groups employees by project name) -->
+    <div class="proj-summary-section" id="projSummarySection">
+      <div class="proj-summary-header">
+        <h4>📊 Project Summary — Combined View</h4>
+        <span class="proj-summary-badge" id="projSummaryBadge">0 Projects</span>
+      </div>
+      <div class="proj-summary-table-wrap">
+        <table class="proj-summary-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Project Name</th>
+              <th>Team Members</th>
+              <th>Total Hours</th>
+              <th>Combined Labour Cost</th>
+              <th>Project Value (Client Fee) ✏️</th>
+              <th>Profit / Margin</th>
+              <th>Margin %</th>
+            </tr>
+          </thead>
+          <tbody id="projSummaryBody">
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>TOTALS</td>
+              <td>—</td>
+              <td id="psTotHours">0 hrs</td>
+              <td id="psTotLabour">—</td>
+              <td id="psTotValue">—</td>
+              <td id="psTotMargin">—</td>
+              <td id="psTotMarginPct">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="proj-summary-hint">
+        💡 <strong>Tip:</strong> Employees with the same Project Name are grouped here automatically.
+        Edit <strong>Project Value</strong> directly in this table — it applies to the whole project (not per employee).
+        Employees with <em>no project assigned</em> are shown as "Unassigned".
       </div>
     </div>
 
@@ -1114,6 +1299,12 @@
       let totLaborCostCur = 0;
       let totMarginCur = 0;
 
+      // Calculate unique project values and unique project times for totals
+      const countedProjects = new Set();
+      const countedProjTimes = new Set();
+      let uniqueProjRevenueCur = 0;
+      let uniqueProjHoursTotal = 0;
+
       employees.forEach((emp, index) => {
         // Converted from base INR to currentCurrency
         const salaryCur = Math.round(convertFromINR(emp.baseSalary) * 100) / 100;
@@ -1133,10 +1324,23 @@
         totSalaryCur += salaryCur;
         totCostCur += costCur;
         totHours += hours;  // daily hours per employee
-        totProjHours += projHours;
-        totProjValCur += projValCur;
         totLaborCostCur += laborCostCur;
-        totMarginCur += marginCur;
+
+        // Count project value and project time once per unique project name (to prevent adding up when >1 person works on same project)
+        const projKey = (emp.projectName || "").trim().toLowerCase();
+        if (projKey) {
+          if (!countedProjects.has(projKey)) {
+            countedProjects.add(projKey);
+            uniqueProjRevenueCur += projValCur;
+          }
+          if (!countedProjTimes.has(projKey)) {
+            countedProjTimes.add(projKey);
+            uniqueProjHoursTotal += projHours;
+          }
+        } else {
+          uniqueProjRevenueCur += projValCur;
+          uniqueProjHoursTotal += projHours;
+        }
 
         const isPositive = marginCur >= 0;
 
@@ -1208,6 +1412,10 @@
       const overallAvgHourly = totMonthlyHours > 0 ? (totSalaryCur / totMonthlyHours) : 0;
       document.getElementById("avgHourly").textContent = formatMoney(overallAvgHourly) + "/hr";
 
+      totProjValCur = uniqueProjRevenueCur;
+      totProjHours = uniqueProjHoursTotal;
+      totMarginCur = totProjValCur - totLaborCostCur;
+
       document.getElementById("sumProjHours").textContent = totProjHours.toLocaleString() + " hrs";
       document.getElementById("sumProjValue").textContent = formatMoney(totProjValCur);
       document.getElementById("sumProjCost").textContent = formatMoney(totLaborCostCur);
@@ -1238,6 +1446,9 @@
       kpiMargin.style.color = isTotalPositive ? "#166534" : "#991b1b";
 
       document.getElementById("kpiMarginPct").textContent = `${totMarginPct.toFixed(1)}% Overall Profit Margin`;
+
+      // Render the Combined Project Summary Section
+      renderProjectSummary();
     }
 
     // Input Handlers: Convert from Current Currency back to Base INR
@@ -1257,7 +1468,20 @@
 
     function onProjectValueChange(index, valueInCurrentCurrency) {
       const val = parseFloat(valueInCurrentCurrency) || 0;
-      employees[index].baseProjectValue = convertToINR(val);
+      const inrVal = convertToINR(val);
+      const changedProjName = (employees[index].projectName || "").trim();
+
+      // If this employee is assigned to a project, sync that project value across all employees with the same project name
+      if (changedProjName) {
+        employees.forEach(emp => {
+          if ((emp.projectName || "").trim().toLowerCase() === changedProjName.toLowerCase()) {
+            emp.baseProjectValue = inrVal;
+          }
+        });
+      } else {
+        employees[index].baseProjectValue = inrVal;
+      }
+
       saveState();
       renderAll();
     }
@@ -1269,7 +1493,23 @@
 
     function onProjectNameChange(index, val) {
       employees[index].projectName = val;
+      const trimmed = val ? val.trim() : "";
+
+      // If joining an existing project with an already defined Project Value or Project Time, inherit them
+      if (trimmed) {
+        const existing = employees.find((e, idx) => idx !== index && (e.projectName || "").trim().toLowerCase() === trimmed.toLowerCase());
+        if (existing) {
+          if (existing.baseProjectValue !== undefined) {
+            employees[index].baseProjectValue = existing.baseProjectValue;
+          }
+          if (existing.projectTime !== undefined) {
+            employees[index].projectTime = existing.projectTime;
+          }
+        }
+      }
+
       saveState();
+      renderAll();
     }
 
     function onHoursChange(index, val) {
@@ -1279,7 +1519,19 @@
     }
 
     function onProjectHoursChange(index, val) {
-      employees[index].projectTime = parseFloat(val) || 0;
+      const hoursVal = parseFloat(val) || 0;
+      employees[index].projectTime = hoursVal;
+      const changedProjName = (employees[index].projectName || "").trim();
+
+      // If this employee is assigned to a project, sync project time across all employees on the same project
+      if (changedProjName) {
+        employees.forEach(emp => {
+          if ((emp.projectName || "").trim().toLowerCase() === changedProjName.toLowerCase()) {
+            emp.projectTime = hoursVal;
+          }
+        });
+      }
+
       saveState();
       renderAll();
     }
@@ -1343,6 +1595,151 @@
         saveState();
         renderAll();
       }
+    }
+
+    // Project Summary Section Logic
+    function onProjectSummaryValueChange(projKey, valueInCurrentCurrency) {
+      const val = parseFloat(valueInCurrentCurrency) || 0;
+      const inrVal = convertToINR(val);
+
+      // Find all employees matching this project and set the exact same fixed project value for all of them
+      employees.forEach(e => {
+        const key = (e.projectName && e.projectName.trim()) ? e.projectName.trim() : "__UNASSIGNED__";
+        if (key === projKey) {
+          e.baseProjectValue = inrVal;
+        }
+      });
+
+      saveState();
+      renderAll();
+    }
+
+    function renderProjectSummary() {
+      const tbody = document.getElementById("projSummaryBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      // Group employees by project name
+      const groups = {};
+      employees.forEach((emp, index) => {
+        const rawName = (emp.projectName && emp.projectName.trim()) ? emp.projectName.trim() : "";
+        const key = rawName || "__UNASSIGNED__";
+        const projHours = parseFloat(emp.projectTime) || 0;
+
+        if (!groups[key]) {
+          groups[key] = {
+            displayName: rawName || "Unassigned / General Tasks",
+            isUnassigned: !rawName,
+            members: [],
+            totalHours: 0,
+            fixedProjectHours: projHours,
+            combinedLabourCostCur: 0,
+            fixedProjectValueBase: parseFloat(emp.baseProjectValue) || 0
+          };
+        }
+
+        const salaryCur = Math.round(convertFromINR(emp.baseSalary) * 100) / 100;
+        const hours = parseFloat(emp.workingHours) || 8;
+        const daysPerMonth = parseFloat(emp.workingDaysPerMonth) || 22;
+        const monthlyHours = hours * daysPerMonth;
+        const perHourValCur = monthlyHours > 0 ? (salaryCur / monthlyHours) : 0;
+        const laborCostCur = projHours * perHourValCur;
+
+        groups[key].members.push({
+          name: emp.name || `Employee #${index + 1}`,
+          hours: projHours,
+          laborCostCur: laborCostCur
+        });
+        groups[key].combinedLabourCostCur += laborCostCur;
+        if (projHours > 0) {
+          groups[key].fixedProjectHours = projHours;
+        }
+        // The project value is fixed for this project (taken from the project's assigned value)
+        if (emp.baseProjectValue !== undefined && emp.baseProjectValue > 0) {
+          groups[key].fixedProjectValueBase = parseFloat(emp.baseProjectValue);
+        }
+      });
+
+      const groupKeys = Object.keys(groups);
+      const projectCount = groupKeys.filter(k => k !== "__UNASSIGNED__").length;
+      document.getElementById("projSummaryBadge").textContent = `${projectCount} Project${projectCount === 1 ? '' : 's'}`;
+
+      let totHoursAll = 0;
+      let totLabourAll = 0;
+      let totValueAll = 0;
+      let totMarginAll = 0;
+
+      groupKeys.forEach(k => {
+        const grp = groups[k];
+        // Fixed Project Value (NOT summed across employees)
+        const projValCur = Math.round(convertFromINR(grp.fixedProjectValueBase) * 100) / 100;
+        const marginCur = projValCur - grp.combinedLabourCostCur;
+        const marginPct = projValCur > 0 ? ((marginCur / projValCur) * 100) : 0;
+        const isPos = marginCur >= 0;
+
+        // Project time is fixed for the project (not added up across members)
+        const projectTimeDisplay = grp.fixedProjectHours || 0;
+
+        totHoursAll += projectTimeDisplay;
+        totLabourAll += grp.combinedLabourCostCur;
+        totValueAll += projValCur;
+        totMarginAll += marginCur;
+
+        const memberPills = grp.members.map(m => `
+          <span class="proj-team-pill" title="${m.hours} hrs (${formatMoney(m.laborCostCur)})">
+            ${escapeHtml(m.name)}: <strong>${m.hours}h</strong>
+          </span>
+        `).join("");
+
+        const escapedKey = escapeHtml(k).replace(/'/g, "\\'");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="proj-name-cell">
+            ${grp.isUnassigned ? '<em style="color:#94a3b8;">Unassigned / General Tasks</em>' : escapeHtml(grp.displayName)}
+          </td>
+          <td>
+            <div class="proj-team-pills">${memberPills || '<span style="color:#94a3b8;">-</span>'}</div>
+          </td>
+          <td style="text-align: right; font-weight: 600;">
+            ${projectTimeDisplay.toLocaleString()} hrs
+          </td>
+          <td style="text-align: right; font-weight: 600; color: #475569;">
+            ${formatMoney(grp.combinedLabourCostCur)}
+          </td>
+          <td style="text-align: right;">
+            <input type="number" class="proj-value-input" value="${projValCur}" step="any" min="0"
+              title="Project Value (Client Fee) - automatically syncs to avoid double counting"
+              onchange="onProjectSummaryValueChange('${escapedKey}', this.value)">
+          </td>
+          <td style="text-align: right;">
+            <span class="profit-pill ${isPos ? 'positive' : 'negative'}">
+              ${isPos ? '+' : ''}${formatMoney(marginCur)}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <span class="profit-pill ${isPos ? 'positive' : 'negative'}">
+              ${marginPct.toFixed(1)}%
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update Project Summary Footers
+      document.getElementById("psTotHours").textContent = `${totHoursAll.toLocaleString()} hrs`;
+      document.getElementById("psTotLabour").textContent = formatMoney(totLabourAll);
+      document.getElementById("psTotValue").textContent = formatMoney(totValueAll);
+
+      const isTotPos = totMarginAll >= 0;
+      const psMarginEl = document.getElementById("psTotMargin");
+      psMarginEl.textContent = (isTotPos ? "+" : "") + formatMoney(totMarginAll);
+      psMarginEl.style.color = isTotPos ? "var(--success-text)" : "var(--danger-text)";
+
+      const totMarginPct = totValueAll > 0 ? ((totMarginAll / totValueAll) * 100) : 0;
+      const psMarginPctEl = document.getElementById("psTotMarginPct");
+      psMarginPctEl.textContent = `${totMarginPct.toFixed(1)}%`;
+      psMarginPctEl.style.color = isTotPos ? "var(--success-text)" : "var(--danger-text)";
     }
 
     function resetToInitial() {
